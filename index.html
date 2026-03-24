@@ -263,7 +263,7 @@
                 <label>Sifre Tekrar</label>
                 <input type="password" id="regPasswordConfirm" autocomplete="new-password">
             </div>
-            <button class="btn" onclick="register()">Kayit Ol</button>
+            <button class="btn" id="regBtn" onclick="register()">Kayit Ol</button>
             <div class="switch-link">
                 Zaten hesabiniz var mi? <a onclick="showView('login')">Giris Yap</a>
             </div>
@@ -438,11 +438,14 @@
             const email = document.getElementById('regEmail').value.trim();
             const pw = document.getElementById('regPassword').value;
             const pw2 = document.getElementById('regPasswordConfirm').value;
+            const regBtn = document.getElementById('regBtn');
 
             if (!email) return showMsg('registerMsg', 'E-posta gerekli.');
             if (pw !== pw2) return showMsg('registerMsg', 'Sifreler eslesmiyor.');
             const pwErr = validatePassword(pw);
             if (pwErr) return showMsg('registerMsg', pwErr);
+
+            regBtn.disabled = true;
 
             const res = await fetch(`${SUPABASE_URL}/auth/v1/signup`, {
                 method: 'POST',
@@ -458,11 +461,13 @@
             if (res.ok) {
                 if (data.user && data.user.identities && data.user.identities.length === 0) {
                     showMsg('registerMsg', 'Bu e-posta adresi zaten kayitli.');
+                    regBtn.disabled = false;
                 } else {
                     showView('confirmPending');
                 }
             } else {
                 showMsg('registerMsg', data.error_description || data.msg || data.message || 'Kayit basarisiz.');
+                regBtn.disabled = false;
             }
         }
 
