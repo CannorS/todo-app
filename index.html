@@ -717,8 +717,9 @@
             }
         }
 
-        // Handle email confirmation redirect
+        // Handle email confirmation redirect (supports both hash and PKCE flows)
         function handleAuthRedirect() {
+            // 1) Hash fragment flow: #access_token=...
             const hash = window.location.hash;
             if (hash && hash.includes('access_token')) {
                 const params = new URLSearchParams(hash.substring(1));
@@ -727,13 +728,28 @@
                 if (token) {
                     accessToken = token;
                     if (refreshToken) localStorage.setItem('sb_refresh', refreshToken);
-                    // Clear hash
                     history.replaceState(null, '', window.location.pathname);
-                    // Get user then proceed
-                    fetch(`${SUPABASE_URL}/auth/v1/user`, {
-                        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
-                    }).then(r => r.json()).then(async user => {
-                        currentUser = user;
+                    proceedAfterAuth(token);
+                    return true;
+                }
+            }
+
+            // 2) PKCE / token_hash flow from email confirmation
+            const urlParams = new URLSearchParams(window.location.search);
+            const tokenHash = urlParams.get('token_hash');
+            const type = urlParams.get('type');
+            if (tokenHash && type) {
+                history.replaceState(null, '', window.location.pathname);
+                fetch(`${SUPABASE_URL}/auth/v1/verify`, {
+                    method: 'POST',
+                    headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token_hash: tokenHash, type })
+                }).then(r => r.json()).then(async data => {
+                    if (data.access_token) {
+                        accessToken = data.access_token;
+                        if (data.refresh_token) localStorage.setItem('sb_refresh', data.refresh_token);
+                        currentUser = data.user;
+                        showMsg('loginMsg', 'E-posta onaylandi! Simdi 2FA kurulumuna geciliyor...', 'success');
                         const factors = await getMfaFactors();
                         const verifiedTOTP = factors.filter(f => f.factor_type === 'totp' && f.status === 'verified');
                         if (verifiedTOTP.length > 0) {
@@ -743,11 +759,67 @@
                         } else {
                             await enrollMfa();
                         }
-                    });
-                    return true;
-                }
+                    } else {
+                        showView('login');
+                        showMsg('loginMsg', 'Onay basarili! Lutfen giris yapin.', 'success');
+                    }
+                }).catch(() => {
+                    showView('login');
+                    showMsg('loginMsg', 'Onay sirasinda hata olustu. Lutfen tekrar deneyin.', 'error');
+                });
+                return true;
             }
+
+            // 3) Legacy code flow: ?code=...
+            const code = urlParams.get('code');
+            if (code) {
+                history.replaceState(null, '', window.location.pathname);
+                fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=pkce`, {
+                    method: 'POST',
+                    headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ auth_code: code })
+                }).then(r => r.json()).then(async data => {
+                    if (data.access_token) {
+                        accessToken = data.access_token;
+                        if (data.refresh_token) localStorage.setItem('sb_refresh', data.refresh_token);
+                        currentUser = data.user;
+                        const factors = await getMfaFactors();
+                        const verifiedTOTP = factors.filter(f => f.factor_type === 'totp' && f.status === 'verified');
+                        if (verifiedTOTP.length > 0) {
+                            mfaFactorId = verifiedTOTP[0].id;
+                            await startMfaChallenge();
+                            showView('mfaVerify');
+                        } else {
+                            await enrollMfa();
+                        }
+                    } else {
+                        showView('login');
+                        showMsg('loginMsg', 'Onay basarili! Lutfen giris yapin.', 'success');
+                    }
+                }).catch(() => {
+                    showView('login');
+                    showMsg('loginMsg', 'Onay sirasinda hata olustu.', 'error');
+                });
+                return true;
+            }
+
             return false;
+        }
+
+        async function proceedAfterAuth(token) {
+            const userRes = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+                headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
+            });
+            currentUser = await userRes.json();
+            const factors = await getMfaFactors();
+            const verifiedTOTP = factors.filter(f => f.factor_type === 'totp' && f.status === 'verified');
+            if (verifiedTOTP.length > 0) {
+                mfaFactorId = verifiedTOTP[0].id;
+                await startMfaChallenge();
+                showView('mfaVerify');
+            } else {
+                await enrollMfa();
+            }
         }
 
         // ============ TODO CRUD ============
