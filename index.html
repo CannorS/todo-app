@@ -5,11 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Yapilacaklar Listesi</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -20,40 +16,53 @@
             min-height: 100vh;
         }
 
-        .container {
-            width: 100%;
-            max-width: 500px;
+        .container { width: 100%; max-width: 500px; }
+
+        h1 { text-align: center; color: #1a1a2e; margin-bottom: 24px; font-size: 28px; }
+
+        /* Auth styles */
+        .auth-box {
+            background: #fff;
+            border-radius: 12px;
+            padding: 32px 24px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            margin-bottom: 24px;
         }
 
-        h1 {
+        .auth-box h2 {
             text-align: center;
             color: #1a1a2e;
-            margin-bottom: 24px;
-            font-size: 28px;
+            margin-bottom: 20px;
+            font-size: 22px;
         }
 
-        .input-row {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 24px;
+        .auth-box .field {
+            margin-bottom: 14px;
         }
 
-        .input-row input {
-            flex: 1;
-            padding: 12px 16px;
+        .auth-box label {
+            display: block;
+            font-size: 13px;
+            color: #555;
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+
+        .auth-box input {
+            width: 100%;
+            padding: 11px 14px;
             border: 2px solid #ddd;
             border-radius: 8px;
-            font-size: 16px;
+            font-size: 15px;
             outline: none;
             transition: border-color 0.2s;
         }
 
-        .input-row input:focus {
-            border-color: #4361ee;
-        }
+        .auth-box input:focus { border-color: #4361ee; }
 
-        .input-row button {
-            padding: 12px 20px;
+        .auth-box .btn {
+            width: 100%;
+            padding: 12px;
             background: #4361ee;
             color: #fff;
             border: none;
@@ -61,224 +70,690 @@
             font-size: 16px;
             cursor: pointer;
             transition: background 0.2s;
-        }
-
-        .input-row button:hover {
-            background: #3a56d4;
-        }
-
-        .filters {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 16px;
-        }
-
-        .filters button {
-            flex: 1;
-            padding: 8px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            background: #fff;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.2s;
-        }
-
-        .filters button.active {
-            border-color: #4361ee;
-            background: #4361ee;
-            color: #fff;
-        }
-
-        .stats-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 16px;
-            background: #fff;
-            border-radius: 8px;
-            margin-bottom: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-            font-size: 14px;
-            color: #555;
-        }
-
-        .stats-bar .counts span {
-            margin-right: 12px;
-        }
-
-        .stats-bar .counts .label {
-            color: #999;
-        }
-
-        .stats-bar .counts .num {
-            font-weight: 600;
-            color: #1a1a2e;
-        }
-
-        .actions-bar {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 16px;
-        }
-
-        .actions-bar button {
-            flex: 1;
-            padding: 8px 12px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            background: #fff;
-            cursor: pointer;
-            font-size: 13px;
-            transition: all 0.2s;
-            color: #555;
-        }
-
-        .actions-bar button:hover {
-            border-color: #4361ee;
-            color: #4361ee;
-        }
-
-        .actions-bar button.danger:hover {
-            border-color: #e63946;
-            color: #e63946;
-        }
-
-        .todo-list {
-            list-style: none;
-        }
-
-        .todo-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 14px 16px;
-            background: #fff;
-            border-radius: 8px;
-            margin-bottom: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-            transition: opacity 0.2s;
-        }
-
-        .todo-item.done span {
-            text-decoration: line-through;
-            color: #999;
-        }
-
-        .todo-item input[type="checkbox"] {
-            width: 20px;
-            height: 20px;
-            cursor: pointer;
-            accent-color: #4361ee;
-        }
-
-        .todo-item span {
-            flex: 1;
-            font-size: 16px;
-            word-break: break-word;
-        }
-
-        .todo-item .delete-btn {
-            background: none;
-            border: none;
-            color: #ccc;
-            font-size: 20px;
-            cursor: pointer;
-            padding: 0 4px;
-            transition: color 0.2s;
-        }
-
-        .todo-item .delete-btn:hover {
-            color: #e63946;
-        }
-
-        .empty-msg {
-            text-align: center;
-            color: #999;
-            padding: 32px 0;
-            font-size: 15px;
-        }
-
-        .loading {
-            text-align: center;
-            color: #999;
-            padding: 32px 0;
-            font-size: 15px;
-        }
-
-        .progress-bar {
-            width: 100%;
-            height: 6px;
-            background: #e9ecef;
-            border-radius: 3px;
-            overflow: hidden;
             margin-top: 8px;
         }
 
-        .progress-bar .fill {
-            height: 100%;
-            background: #4361ee;
-            border-radius: 3px;
-            transition: width 0.3s ease;
+        .auth-box .btn:hover { background: #3a56d4; }
+        .auth-box .btn:disabled { background: #a0b0f0; cursor: not-allowed; }
+
+        .auth-box .switch-link {
+            text-align: center;
+            margin-top: 16px;
+            font-size: 14px;
+            color: #777;
         }
+
+        .auth-box .switch-link a {
+            color: #4361ee;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .auth-box .switch-link a:hover { text-decoration: underline; }
+
+        .msg { padding: 10px 14px; border-radius: 8px; font-size: 14px; margin-bottom: 14px; }
+        .msg.error { background: #ffeaea; color: #c0392b; border: 1px solid #f5c6cb; }
+        .msg.success { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
+        .msg.info { background: #e3f2fd; color: #1565c0; border: 1px solid #bbdefb; }
+        .msg.warn { background: #fff3e0; color: #e65100; border: 1px solid #ffe0b2; }
+
+        .hidden { display: none !important; }
+
+        /* User bar */
+        .user-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fff;
+            padding: 10px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            font-size: 14px;
+        }
+
+        .user-bar .email { color: #555; font-weight: 500; }
+
+        .user-bar button {
+            padding: 6px 14px;
+            border: 2px solid #e63946;
+            border-radius: 6px;
+            background: #fff;
+            color: #e63946;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .user-bar button:hover { background: #e63946; color: #fff; }
+
+        /* QR code */
+        .qr-container { text-align: center; margin: 16px 0; }
+        .qr-container img { border: 2px solid #ddd; border-radius: 8px; padding: 8px; background: #fff; }
+        .secret-code { font-family: monospace; font-size: 13px; background: #f5f5f5; padding: 8px 12px; border-radius: 6px; word-break: break-all; margin: 8px 0; text-align: center; }
+
+        /* Lockout bar */
+        .lockout-bar { text-align: center; padding: 10px; font-size: 13px; color: #e65100; }
+
+        /* Todo styles */
+        .input-row { display: flex; gap: 8px; margin-bottom: 24px; }
+
+        .input-row input {
+            flex: 1; padding: 12px 16px; border: 2px solid #ddd;
+            border-radius: 8px; font-size: 16px; outline: none; transition: border-color 0.2s;
+        }
+
+        .input-row input:focus { border-color: #4361ee; }
+
+        .input-row button {
+            padding: 12px 20px; background: #4361ee; color: #fff;
+            border: none; border-radius: 8px; font-size: 16px; cursor: pointer; transition: background 0.2s;
+        }
+
+        .input-row button:hover { background: #3a56d4; }
+
+        .filters { display: flex; gap: 8px; margin-bottom: 16px; }
+
+        .filters button {
+            flex: 1; padding: 8px; border: 2px solid #ddd;
+            border-radius: 8px; background: #fff; cursor: pointer; font-size: 14px; transition: all 0.2s;
+        }
+
+        .filters button.active { border-color: #4361ee; background: #4361ee; color: #fff; }
+
+        .stats-bar {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 12px 16px; background: #fff; border-radius: 8px;
+            margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            font-size: 14px; color: #555; position: relative;
+        }
+
+        .stats-bar .counts span { margin-right: 12px; }
+        .stats-bar .counts .label { color: #999; }
+        .stats-bar .counts .num { font-weight: 600; color: #1a1a2e; }
+
+        .actions-bar { display: flex; gap: 8px; margin-bottom: 16px; }
+
+        .actions-bar button {
+            flex: 1; padding: 8px 12px; border: 2px solid #ddd;
+            border-radius: 8px; background: #fff; cursor: pointer; font-size: 13px;
+            transition: all 0.2s; color: #555;
+        }
+
+        .actions-bar button:hover { border-color: #4361ee; color: #4361ee; }
+        .actions-bar button.danger:hover { border-color: #e63946; color: #e63946; }
+
+        .todo-list { list-style: none; }
+
+        .todo-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 14px 16px; background: #fff; border-radius: 8px;
+            margin-bottom: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+
+        .todo-item.done span { text-decoration: line-through; color: #999; }
+
+        .todo-item input[type="checkbox"] {
+            width: 20px; height: 20px; cursor: pointer; accent-color: #4361ee;
+        }
+
+        .todo-item span { flex: 1; font-size: 16px; word-break: break-word; }
+
+        .todo-item .delete-btn {
+            background: none; border: none; color: #ccc;
+            font-size: 20px; cursor: pointer; padding: 0 4px; transition: color 0.2s;
+        }
+
+        .todo-item .delete-btn:hover { color: #e63946; }
+
+        .empty-msg { text-align: center; color: #999; padding: 32px 0; font-size: 15px; }
+
+        .progress-bar {
+            width: 100%; height: 6px; background: #e9ecef;
+            border-radius: 3px; overflow: hidden;
+            position: absolute; bottom: 0; left: 0; right: 0;
+        }
+
+        .progress-bar .fill {
+            height: 100%; background: #4361ee;
+            border-radius: 3px; transition: width 0.3s ease;
+        }
+
+        .password-rules { font-size: 12px; color: #999; margin-top: 4px; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Yapilacaklar Listesi</h1>
 
-        <div class="input-row">
-            <input type="text" id="todoInput" placeholder="Yeni gorev ekle..." autofocus>
-            <button onclick="addTodo()">Ekle</button>
-        </div>
-
-        <div class="stats-bar" id="statsBar" style="display:none;">
-            <div class="counts">
-                <span><span class="label">Toplam:</span> <span class="num" id="totalCount">0</span></span>
-                <span><span class="label">Aktif:</span> <span class="num" id="activeCount">0</span></span>
-                <span><span class="label">Bitti:</span> <span class="num" id="doneCount">0</span></span>
+        <!-- Auth: Login -->
+        <div id="authLogin" class="auth-box">
+            <h2>Giris Yap</h2>
+            <div id="loginMsg"></div>
+            <div class="field">
+                <label>E-posta</label>
+                <input type="email" id="loginEmail" autocomplete="email">
             </div>
-            <div style="font-size:13px;color:#999;" id="percentText">%0</div>
-            <div class="progress-bar" style="position:absolute;bottom:0;left:0;right:0;">
-                <div class="fill" id="progressFill" style="width:0%"></div>
+            <div class="field">
+                <label>Sifre</label>
+                <input type="password" id="loginPassword" autocomplete="current-password">
+            </div>
+            <div id="loginLockout" class="lockout-bar hidden"></div>
+            <button class="btn" id="loginBtn" onclick="login()">Giris Yap</button>
+            <div class="switch-link">
+                Hesabiniz yok mu? <a onclick="showView('register')">Kayit Ol</a>
             </div>
         </div>
 
-        <div class="filters">
-            <button class="active" onclick="setFilter('all', this)">Tumu</button>
-            <button onclick="setFilter('active', this)">Aktif</button>
-            <button onclick="setFilter('done', this)">Tamamlanan</button>
+        <!-- Auth: Register -->
+        <div id="authRegister" class="auth-box hidden">
+            <h2>Kayit Ol</h2>
+            <div id="registerMsg"></div>
+            <div class="field">
+                <label>E-posta</label>
+                <input type="email" id="regEmail" autocomplete="email">
+            </div>
+            <div class="field">
+                <label>Sifre</label>
+                <input type="password" id="regPassword" autocomplete="new-password">
+                <div class="password-rules">En az 8 karakter, buyuk/kucuk harf ve rakam icermeli</div>
+            </div>
+            <div class="field">
+                <label>Sifre Tekrar</label>
+                <input type="password" id="regPasswordConfirm" autocomplete="new-password">
+            </div>
+            <button class="btn" onclick="register()">Kayit Ol</button>
+            <div class="switch-link">
+                Zaten hesabiniz var mi? <a onclick="showView('login')">Giris Yap</a>
+            </div>
         </div>
 
-        <div class="actions-bar" id="actionsBar" style="display:none;">
-            <button onclick="selectAll()">Tumunu Sec</button>
-            <button onclick="deselectAll()">Secimi Kaldir</button>
-            <button class="danger" onclick="deleteCompleted()">Tamamlananlari Sil</button>
-            <button class="danger" onclick="deleteAll()">Tumunu Sil</button>
+        <!-- Auth: Email Confirmation Pending -->
+        <div id="authConfirmPending" class="auth-box hidden">
+            <h2>E-posta Onayı</h2>
+            <div class="msg info">Kaydiniz basariyla olusturuldu! E-posta adresinize bir onay linki gonderildi. Lutfen e-postanizi kontrol edip hesabinizi onaylayin.</div>
+            <button class="btn" onclick="showView('login')">Giris Sayfasina Don</button>
         </div>
 
-        <ul class="todo-list" id="todoList">
-            <li class="loading">Yukleniyor...</li>
-        </ul>
+        <!-- Auth: MFA Setup -->
+        <div id="authMfaSetup" class="auth-box hidden">
+            <h2>2 Adimli Dogrulama Kurulumu</h2>
+            <div id="mfaSetupMsg"></div>
+            <p style="font-size:14px;color:#555;margin-bottom:12px;text-align:center;">
+                Google Authenticator veya benzeri bir uygulama ile asagidaki QR kodu tarayin.
+            </p>
+            <div class="qr-container">
+                <img id="mfaQrCode" src="" alt="QR Code">
+            </div>
+            <p style="font-size:13px;color:#777;margin:8px 0;text-align:center;">veya bu kodu manuel girin:</p>
+            <div class="secret-code" id="mfaSecret"></div>
+            <div class="field" style="margin-top:16px;">
+                <label>Dogrulama Kodu</label>
+                <input type="text" id="mfaSetupCode" placeholder="6 haneli kod" maxlength="6" inputmode="numeric" autocomplete="one-time-code">
+            </div>
+            <button class="btn" onclick="verifyMfaSetup()">Dogrula ve Aktif Et</button>
+        </div>
+
+        <!-- Auth: MFA Verify (on login) -->
+        <div id="authMfaVerify" class="auth-box hidden">
+            <h2>2 Adimli Dogrulama</h2>
+            <div id="mfaVerifyMsg"></div>
+            <p style="font-size:14px;color:#555;margin-bottom:12px;text-align:center;">
+                Authenticator uygulamanizdan 6 haneli kodu girin.
+            </p>
+            <div class="field">
+                <label>Dogrulama Kodu</label>
+                <input type="text" id="mfaVerifyCode" placeholder="6 haneli kod" maxlength="6" inputmode="numeric" autocomplete="one-time-code">
+            </div>
+            <button class="btn" onclick="verifyMfaLogin()">Dogrula</button>
+        </div>
+
+        <!-- App: Todo -->
+        <div id="appTodo" class="hidden">
+            <div class="user-bar">
+                <span class="email" id="userEmail"></span>
+                <button onclick="logout()">Cikis Yap</button>
+            </div>
+
+            <div class="input-row">
+                <input type="text" id="todoInput" placeholder="Yeni gorev ekle...">
+                <button onclick="addTodo()">Ekle</button>
+            </div>
+
+            <div class="stats-bar hidden" id="statsBar">
+                <div class="counts">
+                    <span><span class="label">Toplam:</span> <span class="num" id="totalCount">0</span></span>
+                    <span><span class="label">Aktif:</span> <span class="num" id="activeCount">0</span></span>
+                    <span><span class="label">Bitti:</span> <span class="num" id="doneCount">0</span></span>
+                </div>
+                <div style="font-size:13px;color:#999;" id="percentText">%0</div>
+                <div class="progress-bar"><div class="fill" id="progressFill" style="width:0%"></div></div>
+            </div>
+
+            <div class="filters">
+                <button class="active" onclick="setFilter('all', this)">Tumu</button>
+                <button onclick="setFilter('active', this)">Aktif</button>
+                <button onclick="setFilter('done', this)">Tamamlanan</button>
+            </div>
+
+            <div class="actions-bar hidden" id="actionsBar">
+                <button onclick="selectAll()">Tumunu Sec</button>
+                <button onclick="deselectAll()">Secimi Kaldir</button>
+                <button class="danger" onclick="deleteCompleted()">Tamamlananlari Sil</button>
+                <button class="danger" onclick="deleteAll()">Tumunu Sil</button>
+            </div>
+
+            <ul class="todo-list" id="todoList"></ul>
+        </div>
     </div>
 
     <script>
         const SUPABASE_URL = 'https://tnqpycjubywvmslmxnve.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRucXB5Y2p1Ynl3dm1zbG14bnZlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNzQ5ODcsImV4cCI6MjA4OTk1MDk4N30.SZtLP0v9iX4WU14jp46PRnmbe_SVr5Qr0Nf1pzXRC0k';
 
-        const headers = {
-            'apikey': SUPABASE_KEY,
-            'Authorization': `Bearer ${SUPABASE_KEY}`,
-            'Content-Type': 'application/json',
-            'Prefer': 'return=representation'
-        };
-
+        let accessToken = null;
+        let currentUser = null;
         let todos = [];
         let filter = 'all';
+        let mfaFactorId = null;
+        let mfaChallengeId = null;
+
+        // Brute force protection - client side
+        const MAX_ATTEMPTS = 5;
+        const LOCKOUT_SECONDS = 60;
+
+        function getLoginAttempts() {
+            const data = JSON.parse(localStorage.getItem('loginAttempts') || '{"count":0,"firstAt":0}');
+            const elapsed = (Date.now() - data.firstAt) / 1000;
+            if (elapsed > LOCKOUT_SECONDS) return { count: 0, firstAt: 0 };
+            return data;
+        }
+
+        function recordLoginAttempt() {
+            const data = getLoginAttempts();
+            if (data.count === 0) data.firstAt = Date.now();
+            data.count++;
+            localStorage.setItem('loginAttempts', JSON.stringify(data));
+        }
+
+        function clearLoginAttempts() {
+            localStorage.removeItem('loginAttempts');
+        }
+
+        function isLockedOut() {
+            const data = getLoginAttempts();
+            if (data.count >= MAX_ATTEMPTS) {
+                const remaining = Math.ceil(LOCKOUT_SECONDS - (Date.now() - data.firstAt) / 1000);
+                if (remaining > 0) return remaining;
+            }
+            return 0;
+        }
+
+        function headers(token) {
+            return {
+                'apikey': SUPABASE_KEY,
+                'Authorization': `Bearer ${token || SUPABASE_KEY}`,
+                'Content-Type': 'application/json',
+                'Prefer': 'return=representation'
+            };
+        }
+
+        function showMsg(containerId, text, type = 'error') {
+            const el = document.getElementById(containerId);
+            el.innerHTML = `<div class="msg ${type}">${escapeHtml(text)}</div>`;
+        }
+
+        function clearMsg(containerId) {
+            document.getElementById(containerId).innerHTML = '';
+        }
+
+        function showView(view) {
+            ['authLogin', 'authRegister', 'authConfirmPending', 'authMfaSetup', 'authMfaVerify', 'appTodo'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            const map = {
+                login: 'authLogin',
+                register: 'authRegister',
+                confirmPending: 'authConfirmPending',
+                mfaSetup: 'authMfaSetup',
+                mfaVerify: 'authMfaVerify',
+                app: 'appTodo'
+            };
+            document.getElementById(map[view]).classList.remove('hidden');
+        }
+
+        function validatePassword(pw) {
+            if (pw.length < 8) return 'Sifre en az 8 karakter olmali.';
+            if (!/[a-z]/.test(pw)) return 'Sifre kucuk harf icermeli.';
+            if (!/[A-Z]/.test(pw)) return 'Sifre buyuk harf icermeli.';
+            if (!/[0-9]/.test(pw)) return 'Sifre rakam icermeli.';
+            return null;
+        }
+
+        // ============ AUTH ============
+
+        async function register() {
+            clearMsg('registerMsg');
+            const email = document.getElementById('regEmail').value.trim();
+            const pw = document.getElementById('regPassword').value;
+            const pw2 = document.getElementById('regPasswordConfirm').value;
+
+            if (!email) return showMsg('registerMsg', 'E-posta gerekli.');
+            if (pw !== pw2) return showMsg('registerMsg', 'Sifreler eslesmiyor.');
+            const pwErr = validatePassword(pw);
+            if (pwErr) return showMsg('registerMsg', pwErr);
+
+            const res = await fetch(`${SUPABASE_URL}/auth/v1/signup`, {
+                method: 'POST',
+                headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email,
+                    password: pw,
+                    options: { emailRedirectTo: 'https://cannors.github.io/todo-app/' }
+                })
+            });
+
+            const data = await res.json();
+            if (res.ok) {
+                if (data.user && data.user.identities && data.user.identities.length === 0) {
+                    showMsg('registerMsg', 'Bu e-posta adresi zaten kayitli.');
+                } else {
+                    showView('confirmPending');
+                }
+            } else {
+                showMsg('registerMsg', data.error_description || data.msg || data.message || 'Kayit basarisiz.');
+            }
+        }
+
+        async function login() {
+            clearMsg('loginMsg');
+            const email = document.getElementById('loginEmail').value.trim();
+            const pw = document.getElementById('loginPassword').value;
+
+            if (!email || !pw) return showMsg('loginMsg', 'E-posta ve sifre gerekli.');
+
+            // Brute force check
+            const lockSec = isLockedOut();
+            if (lockSec > 0) {
+                showMsg('loginMsg', `Cok fazla basarisiz deneme. ${lockSec} saniye bekleyin.`, 'warn');
+                document.getElementById('loginBtn').disabled = true;
+                setTimeout(() => { document.getElementById('loginBtn').disabled = false; }, lockSec * 1000);
+                return;
+            }
+
+            const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+                method: 'POST',
+                headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password: pw })
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                recordLoginAttempt();
+                // Also record server-side
+                await fetch(`${SUPABASE_URL}/rest/v1/login_attempts`, {
+                    method: 'POST',
+                    headers: headers(),
+                    body: JSON.stringify({ email })
+                }).catch(() => {});
+
+                const lockNow = isLockedOut();
+                if (lockNow > 0) {
+                    showMsg('loginMsg', `Cok fazla basarisiz deneme. ${lockNow} saniye bekleyin.`, 'warn');
+                    document.getElementById('loginBtn').disabled = true;
+                    setTimeout(() => { document.getElementById('loginBtn').disabled = false; }, lockNow * 1000);
+                } else {
+                    showMsg('loginMsg', data.error_description || data.msg || data.message || 'Giris basarisiz.');
+                }
+                return;
+            }
+
+            clearLoginAttempts();
+            accessToken = data.access_token;
+            currentUser = data.user;
+
+            // Store refresh token
+            localStorage.setItem('sb_refresh', data.refresh_token);
+
+            // Check MFA status
+            const factors = await getMfaFactors();
+            const verifiedTOTP = factors.filter(f => f.factor_type === 'totp' && f.status === 'verified');
+
+            if (verifiedTOTP.length > 0) {
+                // User has MFA, need to verify
+                mfaFactorId = verifiedTOTP[0].id;
+                await startMfaChallenge();
+                showView('mfaVerify');
+            } else {
+                // No MFA, must enroll
+                await enrollMfa();
+            }
+        }
+
+        async function getMfaFactors() {
+            const res = await fetch(`${SUPABASE_URL}/auth/v1/factors`, {
+                headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${accessToken}` }
+            });
+            if (!res.ok) return [];
+            const data = await res.json();
+            return data || [];
+        }
+
+        async function enrollMfa() {
+            const res = await fetch(`${SUPABASE_URL}/auth/v1/factors`, {
+                method: 'POST',
+                headers: {
+                    'apikey': SUPABASE_KEY,
+                    'Authorization': `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    factor_type: 'totp',
+                    friendly_name: 'Authenticator'
+                })
+            });
+
+            const data = await res.json();
+            if (res.ok) {
+                mfaFactorId = data.id;
+                document.getElementById('mfaQrCode').src = data.totp.qr_code;
+                document.getElementById('mfaSecret').textContent = data.totp.secret;
+                showView('mfaSetup');
+            } else {
+                showMsg('loginMsg', 'MFA kurulumu basarisiz: ' + (data.message || 'Bilinmeyen hata'));
+            }
+        }
+
+        async function verifyMfaSetup() {
+            clearMsg('mfaSetupMsg');
+            const code = document.getElementById('mfaSetupCode').value.trim();
+            if (!code || code.length !== 6) return showMsg('mfaSetupMsg', '6 haneli kodu girin.');
+
+            // Create challenge
+            const chalRes = await fetch(`${SUPABASE_URL}/auth/v1/factors/${mfaFactorId}/challenge`, {
+                method: 'POST',
+                headers: {
+                    'apikey': SUPABASE_KEY,
+                    'Authorization': `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const chalData = await chalRes.json();
+            if (!chalRes.ok) return showMsg('mfaSetupMsg', 'Challenge olusturulamadi.');
+
+            // Verify
+            const verRes = await fetch(`${SUPABASE_URL}/auth/v1/factors/${mfaFactorId}/verify`, {
+                method: 'POST',
+                headers: {
+                    'apikey': SUPABASE_KEY,
+                    'Authorization': `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ challenge_id: chalData.id, code })
+            });
+
+            const verData = await verRes.json();
+            if (verRes.ok) {
+                accessToken = verData.access_token || accessToken;
+                if (verData.refresh_token) localStorage.setItem('sb_refresh', verData.refresh_token);
+                enterApp();
+            } else {
+                showMsg('mfaSetupMsg', 'Kod hatali. Tekrar deneyin.');
+            }
+        }
+
+        async function startMfaChallenge() {
+            const res = await fetch(`${SUPABASE_URL}/auth/v1/factors/${mfaFactorId}/challenge`, {
+                method: 'POST',
+                headers: {
+                    'apikey': SUPABASE_KEY,
+                    'Authorization': `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            const data = await res.json();
+            mfaChallengeId = data.id;
+        }
+
+        async function verifyMfaLogin() {
+            clearMsg('mfaVerifyMsg');
+            const code = document.getElementById('mfaVerifyCode').value.trim();
+            if (!code || code.length !== 6) return showMsg('mfaVerifyMsg', '6 haneli kodu girin.');
+
+            const res = await fetch(`${SUPABASE_URL}/auth/v1/factors/${mfaFactorId}/verify`, {
+                method: 'POST',
+                headers: {
+                    'apikey': SUPABASE_KEY,
+                    'Authorization': `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ challenge_id: mfaChallengeId, code })
+            });
+
+            const data = await res.json();
+            if (res.ok) {
+                accessToken = data.access_token || accessToken;
+                if (data.refresh_token) localStorage.setItem('sb_refresh', data.refresh_token);
+                enterApp();
+            } else {
+                showMsg('mfaVerifyMsg', 'Kod hatali. Tekrar deneyin.');
+            }
+        }
+
+        function enterApp() {
+            document.getElementById('userEmail').textContent = currentUser.email;
+            showView('app');
+            fetchTodos();
+        }
+
+        async function logout() {
+            await fetch(`${SUPABASE_URL}/auth/v1/logout`, {
+                method: 'POST',
+                headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${accessToken}` }
+            }).catch(() => {});
+            accessToken = null;
+            currentUser = null;
+            todos = [];
+            localStorage.removeItem('sb_refresh');
+            showView('login');
+        }
+
+        // Try to restore session on load
+        async function tryRestoreSession() {
+            const refresh = localStorage.getItem('sb_refresh');
+            if (!refresh) return showView('login');
+
+            const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`, {
+                method: 'POST',
+                headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ refresh_token: refresh })
+            });
+
+            if (!res.ok) {
+                localStorage.removeItem('sb_refresh');
+                return showView('login');
+            }
+
+            const data = await res.json();
+            accessToken = data.access_token;
+            currentUser = data.user;
+            localStorage.setItem('sb_refresh', data.refresh_token);
+
+            // Check AAL level - must be aal2 for MFA
+            const factors = await getMfaFactors();
+            const verifiedTOTP = factors.filter(f => f.factor_type === 'totp' && f.status === 'verified');
+
+            if (verifiedTOTP.length > 0) {
+                // Need to check if session already has aal2
+                const aalRes = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+                    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${accessToken}` }
+                });
+                const userData = await aalRes.json();
+
+                // Try accessing todos - if RLS blocks, need MFA verify
+                const testRes = await fetch(`${SUPABASE_URL}/rest/v1/todos?limit=1`, {
+                    headers: headers(accessToken)
+                });
+
+                if (testRes.ok) {
+                    enterApp();
+                } else {
+                    // Need MFA re-verify
+                    mfaFactorId = verifiedTOTP[0].id;
+                    await startMfaChallenge();
+                    showView('mfaVerify');
+                }
+            } else {
+                // No MFA enrolled yet, need setup
+                await enrollMfa();
+            }
+        }
+
+        // Handle email confirmation redirect
+        function handleAuthRedirect() {
+            const hash = window.location.hash;
+            if (hash && hash.includes('access_token')) {
+                const params = new URLSearchParams(hash.substring(1));
+                const token = params.get('access_token');
+                const refreshToken = params.get('refresh_token');
+                if (token) {
+                    accessToken = token;
+                    if (refreshToken) localStorage.setItem('sb_refresh', refreshToken);
+                    // Clear hash
+                    history.replaceState(null, '', window.location.pathname);
+                    // Get user then proceed
+                    fetch(`${SUPABASE_URL}/auth/v1/user`, {
+                        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
+                    }).then(r => r.json()).then(async user => {
+                        currentUser = user;
+                        const factors = await getMfaFactors();
+                        const verifiedTOTP = factors.filter(f => f.factor_type === 'totp' && f.status === 'verified');
+                        if (verifiedTOTP.length > 0) {
+                            mfaFactorId = verifiedTOTP[0].id;
+                            await startMfaChallenge();
+                            showView('mfaVerify');
+                        } else {
+                            await enrollMfa();
+                        }
+                    });
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // ============ TODO CRUD ============
 
         async function fetchTodos() {
-            const res = await fetch(`${SUPABASE_URL}/rest/v1/todos?order=created_at.asc`, { headers });
-            todos = await res.json();
+            const res = await fetch(`${SUPABASE_URL}/rest/v1/todos?order=created_at.asc`, { headers: headers(accessToken) });
+            if (res.ok) {
+                todos = await res.json();
+            } else {
+                todos = [];
+            }
             render();
         }
 
@@ -290,11 +765,11 @@
             input.disabled = true;
             const res = await fetch(`${SUPABASE_URL}/rest/v1/todos`, {
                 method: 'POST',
-                headers,
-                body: JSON.stringify({ text, done: false })
+                headers: headers(accessToken),
+                body: JSON.stringify({ text, done: false, user_id: currentUser.id })
             });
-            const [newTodo] = await res.json();
-            todos.push(newTodo);
+            const result = await res.json();
+            if (Array.isArray(result) && result.length > 0) todos.push(result[0]);
             input.value = '';
             input.disabled = false;
             input.focus();
@@ -304,7 +779,7 @@
         async function toggle(id, currentDone) {
             const res = await fetch(`${SUPABASE_URL}/rest/v1/todos?id=eq.${id}`, {
                 method: 'PATCH',
-                headers,
+                headers: headers(accessToken),
                 body: JSON.stringify({ done: !currentDone })
             });
             const [updated] = await res.json();
@@ -316,42 +791,40 @@
         async function remove(id) {
             await fetch(`${SUPABASE_URL}/rest/v1/todos?id=eq.${id}`, {
                 method: 'DELETE',
-                headers
+                headers: headers(accessToken)
             });
             todos = todos.filter(t => t.id !== id);
             render();
         }
 
         async function selectAll() {
-            const activeIds = todos.filter(t => !t.done).map(t => t.id);
-            if (activeIds.length === 0) return;
-
             const res = await fetch(`${SUPABASE_URL}/rest/v1/todos?done=eq.false`, {
                 method: 'PATCH',
-                headers,
+                headers: headers(accessToken),
                 body: JSON.stringify({ done: true })
             });
             const updated = await res.json();
-            for (const u of updated) {
-                const idx = todos.findIndex(t => t.id === u.id);
-                todos[idx] = u;
+            if (Array.isArray(updated)) {
+                for (const u of updated) {
+                    const idx = todos.findIndex(t => t.id === u.id);
+                    if (idx >= 0) todos[idx] = u;
+                }
             }
             render();
         }
 
         async function deselectAll() {
-            const doneIds = todos.filter(t => t.done).map(t => t.id);
-            if (doneIds.length === 0) return;
-
             const res = await fetch(`${SUPABASE_URL}/rest/v1/todos?done=eq.true`, {
                 method: 'PATCH',
-                headers,
+                headers: headers(accessToken),
                 body: JSON.stringify({ done: false })
             });
             const updated = await res.json();
-            for (const u of updated) {
-                const idx = todos.findIndex(t => t.id === u.id);
-                todos[idx] = u;
+            if (Array.isArray(updated)) {
+                for (const u of updated) {
+                    const idx = todos.findIndex(t => t.id === u.id);
+                    if (idx >= 0) todos[idx] = u;
+                }
             }
             render();
         }
@@ -360,10 +833,9 @@
             const doneItems = todos.filter(t => t.done);
             if (doneItems.length === 0) return;
             if (!confirm(`${doneItems.length} tamamlanan gorev silinecek. Emin misiniz?`)) return;
-
             await fetch(`${SUPABASE_URL}/rest/v1/todos?done=eq.true`, {
                 method: 'DELETE',
-                headers
+                headers: headers(accessToken)
             });
             todos = todos.filter(t => !t.done);
             render();
@@ -372,10 +844,9 @@
         async function deleteAll() {
             if (todos.length === 0) return;
             if (!confirm(`Tum gorevler (${todos.length}) silinecek. Emin misiniz?`)) return;
-
             await fetch(`${SUPABASE_URL}/rest/v1/todos?id=gt.0`, {
                 method: 'DELETE',
-                headers
+                headers: headers(accessToken)
             });
             todos = [];
             render();
@@ -393,9 +864,8 @@
             const active = total - done;
             const percent = total === 0 ? 0 : Math.round((done / total) * 100);
 
-            document.getElementById('statsBar').style.display = total > 0 ? 'flex' : 'none';
-            document.getElementById('statsBar').style.position = 'relative';
-            document.getElementById('actionsBar').style.display = total > 0 ? 'flex' : 'none';
+            document.getElementById('statsBar').classList.toggle('hidden', total === 0);
+            document.getElementById('actionsBar').classList.toggle('hidden', total === 0);
             document.getElementById('totalCount').textContent = total;
             document.getElementById('activeCount').textContent = active;
             document.getElementById('doneCount').textContent = done;
@@ -405,7 +875,6 @@
 
         function render() {
             updateStats();
-
             const list = document.getElementById('todoList');
             const filtered = todos.filter(t => {
                 if (filter === 'active') return !t.done;
@@ -438,7 +907,26 @@
             if (e.key === 'Enter') addTodo();
         });
 
-        fetchTodos();
+        document.getElementById('loginPassword').addEventListener('keydown', e => {
+            if (e.key === 'Enter') login();
+        });
+
+        document.getElementById('regPasswordConfirm').addEventListener('keydown', e => {
+            if (e.key === 'Enter') register();
+        });
+
+        document.getElementById('mfaSetupCode').addEventListener('keydown', e => {
+            if (e.key === 'Enter') verifyMfaSetup();
+        });
+
+        document.getElementById('mfaVerifyCode').addEventListener('keydown', e => {
+            if (e.key === 'Enter') verifyMfaLogin();
+        });
+
+        // Init
+        if (!handleAuthRedirect()) {
+            tryRestoreSession();
+        }
     </script>
 </body>
 </html>
