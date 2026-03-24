@@ -36,9 +36,7 @@
             font-size: 22px;
         }
 
-        .auth-box .field {
-            margin-bottom: 14px;
-        }
+        .auth-box .field { margin-bottom: 14px; }
 
         .auth-box label {
             display: block;
@@ -128,10 +126,15 @@
 
         .user-bar button:hover { background: #e63946; color: #fff; }
 
-        /* QR code */
-        .qr-container { text-align: center; margin: 16px 0; }
-        .qr-container img { border: 2px solid #ddd; border-radius: 8px; padding: 8px; background: #fff; }
-        .secret-code { font-family: monospace; font-size: 13px; background: #f5f5f5; padding: 8px 12px; border-radius: 6px; word-break: break-all; margin: 8px 0; text-align: center; }
+        /* OTP input */
+        .otp-input {
+            text-align: center;
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: 12px;
+            padding: 14px 20px;
+            font-family: monospace;
+        }
 
         /* Lockout bar */
         .lockout-bar { text-align: center; padding: 10px; font-size: 13px; color: #e65100; }
@@ -221,6 +224,17 @@
         }
 
         .password-rules { font-size: 12px; color: #999; margin-top: 4px; }
+
+        .resend-link {
+            text-align: center; margin-top: 12px; font-size: 13px; color: #777;
+        }
+
+        .resend-link a {
+            color: #4361ee; cursor: pointer; text-decoration: none; font-weight: 600;
+        }
+
+        .resend-link a:hover { text-decoration: underline; }
+        .resend-link a.disabled { color: #aaa; pointer-events: none; }
     </style>
 </head>
 <body>
@@ -271,42 +285,29 @@
 
         <!-- Auth: Email Confirmation Pending -->
         <div id="authConfirmPending" class="auth-box hidden">
-            <h2>E-posta Onayı</h2>
+            <h2>E-posta Onayi</h2>
             <div class="msg info">Kaydiniz basariyla olusturuldu! E-posta adresinize bir onay linki gonderildi. Lutfen e-postanizi kontrol edip hesabinizi onaylayin.</div>
             <button class="btn" onclick="showView('login')">Giris Sayfasina Don</button>
         </div>
 
-        <!-- Auth: MFA Setup -->
-        <div id="authMfaSetup" class="auth-box hidden">
-            <h2>2 Adimli Dogrulama Kurulumu</h2>
-            <div id="mfaSetupMsg"></div>
-            <p style="font-size:14px;color:#555;margin-bottom:12px;text-align:center;">
-                Google Authenticator veya benzeri bir uygulama ile asagidaki QR kodu tarayin.
-            </p>
-            <div class="qr-container">
-                <img id="mfaQrCode" src="" alt="QR Code">
-            </div>
-            <p style="font-size:13px;color:#777;margin:8px 0;text-align:center;">veya bu kodu manuel girin:</p>
-            <div class="secret-code" id="mfaSecret"></div>
-            <div class="field" style="margin-top:16px;">
-                <label>Dogrulama Kodu</label>
-                <input type="text" id="mfaSetupCode" placeholder="6 haneli kod" maxlength="6" inputmode="numeric" autocomplete="one-time-code">
-            </div>
-            <button class="btn" onclick="verifyMfaSetup()">Dogrula ve Aktif Et</button>
-        </div>
-
-        <!-- Auth: MFA Verify (on login) -->
-        <div id="authMfaVerify" class="auth-box hidden">
-            <h2>2 Adimli Dogrulama</h2>
-            <div id="mfaVerifyMsg"></div>
-            <p style="font-size:14px;color:#555;margin-bottom:12px;text-align:center;">
-                Authenticator uygulamanizdan 6 haneli kodu girin.
+        <!-- Auth: Email OTP Verify -->
+        <div id="authEmailOtp" class="auth-box hidden">
+            <h2>E-posta Dogrulama</h2>
+            <div id="otpMsg"></div>
+            <p style="font-size:14px;color:#555;margin-bottom:16px;text-align:center;">
+                <span id="otpEmailDisplay"></span> adresine 6 haneli dogrulama kodu gonderildi.
             </p>
             <div class="field">
                 <label>Dogrulama Kodu</label>
-                <input type="text" id="mfaVerifyCode" placeholder="6 haneli kod" maxlength="6" inputmode="numeric" autocomplete="one-time-code">
+                <input type="text" id="otpCode" class="otp-input" placeholder="------" maxlength="6" inputmode="numeric" autocomplete="one-time-code">
             </div>
-            <button class="btn" onclick="verifyMfaLogin()">Dogrula</button>
+            <button class="btn" id="otpBtn" onclick="verifyEmailOtp()">Dogrula</button>
+            <div class="resend-link">
+                Kod gelmedi mi? <a id="resendLink" onclick="resendOtp()">Tekrar Gonder</a>
+            </div>
+            <div class="switch-link">
+                <a onclick="showView('login')">Girise Don</a>
+            </div>
         </div>
 
         <!-- App: Todo -->
@@ -356,8 +357,7 @@
         let currentUser = null;
         let todos = [];
         let filter = 'all';
-        let mfaFactorId = null;
-        let mfaChallengeId = null;
+        let pendingEmail = null;
 
         // Brute force protection - client side
         const MAX_ATTEMPTS = 5;
@@ -409,15 +409,14 @@
         }
 
         function showView(view) {
-            ['authLogin', 'authRegister', 'authConfirmPending', 'authMfaSetup', 'authMfaVerify', 'appTodo'].forEach(id => {
+            ['authLogin', 'authRegister', 'authConfirmPending', 'authEmailOtp', 'appTodo'].forEach(id => {
                 document.getElementById(id).classList.add('hidden');
             });
             const map = {
                 login: 'authLogin',
                 register: 'authRegister',
                 confirmPending: 'authConfirmPending',
-                mfaSetup: 'authMfaSetup',
-                mfaVerify: 'authMfaVerify',
+                emailOtp: 'authEmailOtp',
                 app: 'appTodo'
             };
             document.getElementById(map[view]).classList.remove('hidden');
@@ -487,6 +486,8 @@
                 return;
             }
 
+            document.getElementById('loginBtn').disabled = true;
+
             const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
                 method: 'POST',
                 headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' },
@@ -496,8 +497,8 @@
             const data = await res.json();
 
             if (!res.ok) {
+                document.getElementById('loginBtn').disabled = false;
                 recordLoginAttempt();
-                // Also record server-side
                 await fetch(`${SUPABASE_URL}/rest/v1/login_attempts`, {
                     method: 'POST',
                     headers: headers(),
@@ -516,136 +517,83 @@
             }
 
             clearLoginAttempts();
+            document.getElementById('loginBtn').disabled = false;
+
+            // Password correct - now send email OTP for 2FA
+            pendingEmail = email;
             accessToken = data.access_token;
             currentUser = data.user;
-
-            // Store refresh token
             localStorage.setItem('sb_refresh', data.refresh_token);
 
-            // Check MFA status
-            const factors = await getMfaFactors();
-            const verifiedTOTP = factors.filter(f => f.factor_type === 'totp' && f.status === 'verified');
+            await sendEmailOtp(email);
+        }
 
-            if (verifiedTOTP.length > 0) {
-                // User has MFA, need to verify
-                mfaFactorId = verifiedTOTP[0].id;
-                await startMfaChallenge();
-                showView('mfaVerify');
+        async function sendEmailOtp(email) {
+            const res = await fetch(`${SUPABASE_URL}/auth/v1/otp`, {
+                method: 'POST',
+                headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email,
+                    options: { shouldCreateUser: false }
+                })
+            });
+
+            if (res.ok) {
+                document.getElementById('otpEmailDisplay').textContent = email;
+                document.getElementById('otpCode').value = '';
+                showView('emailOtp');
+                showMsg('otpMsg', 'Dogrulama kodu e-posta adresinize gonderildi.', 'info');
+                document.getElementById('otpCode').focus();
             } else {
-                // No MFA, must enroll
-                await enrollMfa();
+                const data = await res.json();
+                showMsg('loginMsg', data.error_description || data.msg || data.message || 'OTP gonderilemedi.');
             }
         }
 
-        async function getMfaFactors() {
-            const res = await fetch(`${SUPABASE_URL}/auth/v1/factors`, {
-                headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${accessToken}` }
-            });
-            if (!res.ok) return [];
-            const data = await res.json();
-            return data || [];
-        }
+        async function verifyEmailOtp() {
+            clearMsg('otpMsg');
+            const code = document.getElementById('otpCode').value.trim();
+            if (!code || code.length !== 6) return showMsg('otpMsg', '6 haneli kodu girin.');
 
-        async function enrollMfa() {
-            const res = await fetch(`${SUPABASE_URL}/auth/v1/factors`, {
+            document.getElementById('otpBtn').disabled = true;
+
+            const res = await fetch(`${SUPABASE_URL}/auth/v1/verify`, {
                 method: 'POST',
-                headers: {
-                    'apikey': SUPABASE_KEY,
-                    'Authorization': `Bearer ${accessToken}`,
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    factor_type: 'totp',
-                    friendly_name: 'Authenticator'
+                    email: pendingEmail,
+                    token: code,
+                    type: 'email'
                 })
             });
 
             const data = await res.json();
-            if (res.ok) {
-                mfaFactorId = data.id;
-                document.getElementById('mfaQrCode').src = data.totp.qr_code;
-                document.getElementById('mfaSecret').textContent = data.totp.secret;
-                showView('mfaSetup');
-            } else {
-                showMsg('loginMsg', 'MFA kurulumu basarisiz: ' + (data.message || 'Bilinmeyen hata'));
-            }
-        }
+            document.getElementById('otpBtn').disabled = false;
 
-        async function verifyMfaSetup() {
-            clearMsg('mfaSetupMsg');
-            const code = document.getElementById('mfaSetupCode').value.trim();
-            if (!code || code.length !== 6) return showMsg('mfaSetupMsg', '6 haneli kodu girin.');
-
-            // Create challenge
-            const chalRes = await fetch(`${SUPABASE_URL}/auth/v1/factors/${mfaFactorId}/challenge`, {
-                method: 'POST',
-                headers: {
-                    'apikey': SUPABASE_KEY,
-                    'Authorization': `Bearer ${accessToken}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            const chalData = await chalRes.json();
-            if (!chalRes.ok) return showMsg('mfaSetupMsg', 'Challenge olusturulamadi.');
-
-            // Verify
-            const verRes = await fetch(`${SUPABASE_URL}/auth/v1/factors/${mfaFactorId}/verify`, {
-                method: 'POST',
-                headers: {
-                    'apikey': SUPABASE_KEY,
-                    'Authorization': `Bearer ${accessToken}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ challenge_id: chalData.id, code })
-            });
-
-            const verData = await verRes.json();
-            if (verRes.ok) {
-                accessToken = verData.access_token || accessToken;
-                if (verData.refresh_token) localStorage.setItem('sb_refresh', verData.refresh_token);
-                enterApp();
-            } else {
-                showMsg('mfaSetupMsg', 'Kod hatali. Tekrar deneyin.');
-            }
-        }
-
-        async function startMfaChallenge() {
-            const res = await fetch(`${SUPABASE_URL}/auth/v1/factors/${mfaFactorId}/challenge`, {
-                method: 'POST',
-                headers: {
-                    'apikey': SUPABASE_KEY,
-                    'Authorization': `Bearer ${accessToken}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-            const data = await res.json();
-            mfaChallengeId = data.id;
-        }
-
-        async function verifyMfaLogin() {
-            clearMsg('mfaVerifyMsg');
-            const code = document.getElementById('mfaVerifyCode').value.trim();
-            if (!code || code.length !== 6) return showMsg('mfaVerifyMsg', '6 haneli kodu girin.');
-
-            const res = await fetch(`${SUPABASE_URL}/auth/v1/factors/${mfaFactorId}/verify`, {
-                method: 'POST',
-                headers: {
-                    'apikey': SUPABASE_KEY,
-                    'Authorization': `Bearer ${accessToken}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ challenge_id: mfaChallengeId, code })
-            });
-
-            const data = await res.json();
-            if (res.ok) {
-                accessToken = data.access_token || accessToken;
+            if (res.ok && data.access_token) {
+                accessToken = data.access_token;
+                currentUser = data.user;
                 if (data.refresh_token) localStorage.setItem('sb_refresh', data.refresh_token);
                 enterApp();
             } else {
-                showMsg('mfaVerifyMsg', 'Kod hatali. Tekrar deneyin.');
+                showMsg('otpMsg', 'Kod hatali veya suresi dolmus. Tekrar deneyin.');
             }
+        }
+
+        async function resendOtp() {
+            if (!pendingEmail) return;
+            const link = document.getElementById('resendLink');
+            link.classList.add('disabled');
+            link.textContent = 'Gonderiliyor...';
+
+            await sendEmailOtp(pendingEmail);
+
+            setTimeout(() => {
+                link.classList.remove('disabled');
+                link.textContent = 'Tekrar Gonder';
+            }, 30000);
+
+            link.textContent = 'Gonderildi (30sn bekleyin)';
         }
 
         function enterApp() {
@@ -662,11 +610,12 @@
             accessToken = null;
             currentUser = null;
             todos = [];
+            pendingEmail = null;
             localStorage.removeItem('sb_refresh');
             showView('login');
         }
 
-        // Try to restore session on load
+        // Try to restore session - always require OTP on each visit
         async function tryRestoreSession() {
             const refresh = localStorage.getItem('sb_refresh');
             if (!refresh) return showView('login');
@@ -687,39 +636,13 @@
             currentUser = data.user;
             localStorage.setItem('sb_refresh', data.refresh_token);
 
-            // Check AAL level - must be aal2 for MFA
-            const factors = await getMfaFactors();
-            const verifiedTOTP = factors.filter(f => f.factor_type === 'totp' && f.status === 'verified');
-
-            if (verifiedTOTP.length > 0) {
-                // Need to check if session already has aal2
-                const aalRes = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
-                    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${accessToken}` }
-                });
-                const userData = await aalRes.json();
-
-                // Try accessing todos - if RLS blocks, need MFA verify
-                const testRes = await fetch(`${SUPABASE_URL}/rest/v1/todos?limit=1`, {
-                    headers: headers(accessToken)
-                });
-
-                if (testRes.ok) {
-                    enterApp();
-                } else {
-                    // Need MFA re-verify
-                    mfaFactorId = verifiedTOTP[0].id;
-                    await startMfaChallenge();
-                    showView('mfaVerify');
-                }
-            } else {
-                // No MFA enrolled yet, need setup
-                await enrollMfa();
-            }
+            // Always require email OTP on session restore
+            pendingEmail = currentUser.email;
+            await sendEmailOtp(pendingEmail);
         }
 
-        // Handle email confirmation redirect (supports both hash and PKCE flows)
+        // Handle email confirmation redirect
         function handleAuthRedirect() {
-            // 1) Hash fragment flow: #access_token=...
             const hash = window.location.hash;
             if (hash && hash.includes('access_token')) {
                 const params = new URLSearchParams(hash.substring(1));
@@ -729,12 +652,17 @@
                     accessToken = token;
                     if (refreshToken) localStorage.setItem('sb_refresh', refreshToken);
                     history.replaceState(null, '', window.location.pathname);
-                    proceedAfterAuth(token);
+                    fetch(`${SUPABASE_URL}/auth/v1/user`, {
+                        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
+                    }).then(r => r.json()).then(user => {
+                        currentUser = user;
+                        showView('login');
+                        showMsg('loginMsg', 'E-posta onaylandi! Simdi giris yapabilirsiniz.', 'success');
+                    });
                     return true;
                 }
             }
 
-            // 2) PKCE / token_hash flow from email confirmation
             const urlParams = new URLSearchParams(window.location.search);
             const tokenHash = urlParams.get('token_hash');
             const type = urlParams.get('type');
@@ -744,33 +672,19 @@
                     method: 'POST',
                     headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' },
                     body: JSON.stringify({ token_hash: tokenHash, type })
-                }).then(r => r.json()).then(async data => {
+                }).then(r => r.json()).then(data => {
                     if (data.access_token) {
-                        accessToken = data.access_token;
-                        if (data.refresh_token) localStorage.setItem('sb_refresh', data.refresh_token);
-                        currentUser = data.user;
-                        showMsg('loginMsg', 'E-posta onaylandi! Simdi 2FA kurulumuna geciliyor...', 'success');
-                        const factors = await getMfaFactors();
-                        const verifiedTOTP = factors.filter(f => f.factor_type === 'totp' && f.status === 'verified');
-                        if (verifiedTOTP.length > 0) {
-                            mfaFactorId = verifiedTOTP[0].id;
-                            await startMfaChallenge();
-                            showView('mfaVerify');
-                        } else {
-                            await enrollMfa();
-                        }
-                    } else {
-                        showView('login');
-                        showMsg('loginMsg', 'Onay basarili! Lutfen giris yapin.', 'success');
+                        localStorage.setItem('sb_refresh', data.refresh_token);
                     }
+                    showView('login');
+                    showMsg('loginMsg', 'E-posta onaylandi! Simdi giris yapabilirsiniz.', 'success');
                 }).catch(() => {
                     showView('login');
-                    showMsg('loginMsg', 'Onay sirasinda hata olustu. Lutfen tekrar deneyin.', 'error');
+                    showMsg('loginMsg', 'Onay sirasinda hata olustu.', 'error');
                 });
                 return true;
             }
 
-            // 3) Legacy code flow: ?code=...
             const code = urlParams.get('code');
             if (code) {
                 history.replaceState(null, '', window.location.pathname);
@@ -778,24 +692,12 @@
                     method: 'POST',
                     headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' },
                     body: JSON.stringify({ auth_code: code })
-                }).then(r => r.json()).then(async data => {
+                }).then(r => r.json()).then(data => {
                     if (data.access_token) {
-                        accessToken = data.access_token;
-                        if (data.refresh_token) localStorage.setItem('sb_refresh', data.refresh_token);
-                        currentUser = data.user;
-                        const factors = await getMfaFactors();
-                        const verifiedTOTP = factors.filter(f => f.factor_type === 'totp' && f.status === 'verified');
-                        if (verifiedTOTP.length > 0) {
-                            mfaFactorId = verifiedTOTP[0].id;
-                            await startMfaChallenge();
-                            showView('mfaVerify');
-                        } else {
-                            await enrollMfa();
-                        }
-                    } else {
-                        showView('login');
-                        showMsg('loginMsg', 'Onay basarili! Lutfen giris yapin.', 'success');
+                        localStorage.setItem('sb_refresh', data.refresh_token);
                     }
+                    showView('login');
+                    showMsg('loginMsg', 'E-posta onaylandi! Simdi giris yapabilirsiniz.', 'success');
                 }).catch(() => {
                     showView('login');
                     showMsg('loginMsg', 'Onay sirasinda hata olustu.', 'error');
@@ -804,22 +706,6 @@
             }
 
             return false;
-        }
-
-        async function proceedAfterAuth(token) {
-            const userRes = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
-                headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
-            });
-            currentUser = await userRes.json();
-            const factors = await getMfaFactors();
-            const verifiedTOTP = factors.filter(f => f.factor_type === 'totp' && f.status === 'verified');
-            if (verifiedTOTP.length > 0) {
-                mfaFactorId = verifiedTOTP[0].id;
-                await startMfaChallenge();
-                showView('mfaVerify');
-            } else {
-                await enrollMfa();
-            }
         }
 
         // ============ TODO CRUD ============
@@ -992,12 +878,8 @@
             if (e.key === 'Enter') register();
         });
 
-        document.getElementById('mfaSetupCode').addEventListener('keydown', e => {
-            if (e.key === 'Enter') verifyMfaSetup();
-        });
-
-        document.getElementById('mfaVerifyCode').addEventListener('keydown', e => {
-            if (e.key === 'Enter') verifyMfaLogin();
+        document.getElementById('otpCode').addEventListener('keydown', e => {
+            if (e.key === 'Enter') verifyEmailOtp();
         });
 
         // Init
